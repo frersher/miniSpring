@@ -1,7 +1,6 @@
-package com.minis;
+package com.minis.core;
 
 import java.util.Iterator;
-import javax.xml.parsers.SAXParser;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;

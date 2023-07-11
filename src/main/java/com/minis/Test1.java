@@ -1,5 +1,6 @@
 package com.minis;
 
+import com.minis.context.ClassPathXmlApplicationContext;
 import com.minis.service.AService;
 
 public class Test1 {

@@ -1,5 +1,8 @@
 package com.minis;
 
+import com.minis.beans.BeanDefinition;
+import com.minis.beans.SimpleBeanFactory;
+import com.minis.core.Resource;
 import org.dom4j.Element;
 
 /**
@@ -8,10 +11,10 @@ import org.dom4j.Element;
  **/
 public class XmlBeanDefinitionReader {
 
-  BeanFactory factory;
+  SimpleBeanFactory simpleBeanFactory;
 
-  public XmlBeanDefinitionReader(BeanFactory factory) {
-    this.factory = factory;
+  public XmlBeanDefinitionReader(SimpleBeanFactory simpleBeanFactory) {
+    this.simpleBeanFactory = simpleBeanFactory;
   }
 
   public void loadBeanDefinitions(Resource resource) throws BeansException {
@@ -20,8 +23,7 @@ public class XmlBeanDefinitionReader {
       String id = element.attributeValue("id");
       String className = element.attributeValue("class");
       BeanDefinition beanDefinition = new BeanDefinition(id, className);
-      beanDefinition.setClassName(className);
-      factory.registerBeanDefinition(beanDefinition);
+      simpleBeanFactory.registerBeanDefinition(id, beanDefinition);
     }
   }
 
