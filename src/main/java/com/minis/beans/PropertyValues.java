@@ -36,6 +36,10 @@ public class PropertyValues {
   }
 
 
+  public boolean isEmpty() {
+    return this.propertyValueList.isEmpty();
+  }
+
 
 
 }

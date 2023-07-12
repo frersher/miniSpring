@@ -10,14 +10,14 @@ import com.minis.core.ClassPathXmlResource;
  * @author: chenb
  * @date: 2023/07/10
  **/
-public class ClassPathXmlApplicationContext implements BeanFactory {
+public class ClassPathXmlApplicationContext implements BeanFactory ,ApplicationEventPublisher{
 
     SimpleBeanFactory beanFactory;
 
     public ClassPathXmlApplicationContext(String path) throws BeansException {
         beanFactory = new SimpleBeanFactory();
-        ClassPathXmlResource resource = new ClassPathXmlResource(path);
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+        ClassPathXmlResource resource = new ClassPathXmlResource(path);
         reader.loadBeanDefinitions(resource);
     }
 
@@ -27,14 +27,25 @@ public class ClassPathXmlApplicationContext implements BeanFactory {
         return beanFactory.getBean(name);
     }
 
-    @Override
-    public void registryBean(String beanName, Object obj) {
-        beanFactory.registryBean(beanName, obj);
-    }
 
     @Override
     public Boolean containsBean(String name) {
         return beanFactory.containsBean(name);
+    }
+
+    @Override
+    public Boolean isSingleton(String name) {
+        return null;
+    }
+
+    @Override
+    public Boolean isPrototype(String name) {
+        return null;
+    }
+
+    @Override
+    public Class<?> getType(String name) {
+        return null;
     }
 
 
