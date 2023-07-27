@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,20 +17,58 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
 
   private Map<String, BeanDefinition> beanDefinitions = new ConcurrentHashMap<>();
   private List<String> beanDefinitionNames = new ArrayList<>();
+  private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);
 
 
+  public SimpleBeanFactory() {
+  }
+
+  public void refresh() {
+    for (String beanName : beanDefinitionNames) {
+      try {
+        getBean(beanName);
+      } catch (BeansException e) {
+        e.printStackTrace();
+      }
+    }
+  }
   @Override
-  public Object getBean(String name) {
-    Object singleton = this.singletonObjects.get(name);
-    if (null == singleton) {
-      BeanDefinition beanDefinition = beanDefinitions.get(name);
-      singleton = createBean(beanDefinition);
-      this.registerSingleton(name, singleton);
+  public Object getBean(String name) throws BeansException {
+    Object singleton = this.getSingleton(name);
+    if (singleton == null){
+      singleton = this.earlySingletonObjects.get(name);
+      if (singleton == null){
+        BeanDefinition bd = beanDefinitions.get(name);
+        singleton = createBean(bd);
+        this.registerSingleton(name, singleton);
+      }
+
+    }
+    if (singleton == null){
+      throw new BeansException("bean is null.");
     }
     return singleton;
   }
 
   private Object createBean(BeanDefinition bd) {
+    Class<?> clz = null;
+    // 创建毛坯bean实例
+    Object obj = doCreateBean(bd);
+    // 存放到实例缓存
+    this.earlySingletonObjects.put(bd.getId(), obj);
+
+    try {
+      clz = Class.forName(bd.getClassName());
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    // 处理属性
+    handleProperties(bd,clz,obj);
+   return obj;
+  }
+
+
+  private Object doCreateBean(BeanDefinition bd){
     Class<?> clz = null;
     Object obj = null;
     Constructor<?> con;
@@ -77,48 +114,73 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
     }
 
     //handle properties
-    PropertyValues propertyValues = bd.getPropertyValues();
-    if (!propertyValues.isEmpty()) {
-      for (int i = 0; i < propertyValues.size(); i++) {
-        PropertyValue propertyValue = propertyValues.getPropertyValueList().get(i);
-        String pName = propertyValue.getName();
-        String pType = propertyValue.getType();
-        Object pValue = propertyValue.getValue();
+    handleProperties(bd, clz,obj);
+    return obj;
 
-        Class<?>[] paramTypes = new Class<?>[1];
-        if ("String".equals(pType) || "java.lang.String".equals(pType)) {
-          paramTypes[0] = String.class;
-        } else if ("Integer".equals(pType) || "java.lang.Integer".equals(pType)) {
-          paramTypes[0] = Integer.class;
-        } else if ("int".equals(pType)) {
-          paramTypes[0] = int.class;
-        } else {
-          paramTypes[0] = String.class;
-        }
-
-        Object[] paramValues = new Object[1];
-        paramValues[0] = pValue;
-
-        String methodName = "set" + pName.substring(0, 1).toUpperCase() + pName.substring(1);
-
-        Method method = null;
-        try {
-          method = clz.getMethod(methodName, paramTypes);
-        } catch (NoSuchMethodException | SecurityException e) {
-          e.printStackTrace();
-        }
-        try {
-          method.invoke(obj, paramValues);
-        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
-          e.printStackTrace();
-        }
-
-      }
-    }
-   return obj;
   }
 
 
+
+  private void handleProperties(BeanDefinition bd, Class<?> clz, Object obj){
+    // 处理属性
+    PropertyValues propertyValues = bd.getPropertyValues();
+
+    if(!propertyValues.isEmpty()){
+        for (int i=0;i<propertyValues.size();i++){
+
+          PropertyValue propertyValue = propertyValues.getPropertyValueList().get(i);
+          String pName = propertyValue.getName();
+          String pType = propertyValue.getType();
+          Object pValue = propertyValue.getValue();
+          boolean ref = propertyValue.isRef();
+
+          Class<?>[] paramTypes = new Class<?>[1];
+          Object[] paramValues = new Object[1];
+
+          if (!ref){
+            if ("String".equals(pType) || "java.lang.String".equals(pType)) {
+              paramTypes[0] = String.class;
+            } else if ("Integer".equals(pType) || "java.lang.Integer".equals(pType)) {
+              paramTypes[0] = Integer.class;
+            } else if ("int".equals(pType)) {
+              paramTypes[0] = int.class;
+            } else {
+              paramTypes[0] = String.class;
+            }
+
+            paramValues[0] = pValue;
+          }else {
+            try {
+              paramTypes[0] = Class.forName(pType);
+            } catch (ClassNotFoundException e) {
+              e.printStackTrace();
+            }
+            try {
+              paramValues[0] = getBean((String) pValue);
+            } catch (BeansException e) {
+              e.printStackTrace();
+            }
+          }
+
+
+
+          String methodName = "set" + pName.substring(0, 1).toUpperCase() + pName.substring(1);
+
+          Method method = null;
+          try {
+            method = clz.getMethod(methodName, paramTypes);
+          } catch (NoSuchMethodException | SecurityException e) {
+            e.printStackTrace();
+          }
+          try {
+            method.invoke(obj, paramValues);
+          } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
+            e.printStackTrace();
+          }
+        }
+    }
+
+  }
 
   public void registryBean(String beanName, Object obj) {
      this.registerSingleton(beanName, obj);
@@ -145,7 +207,7 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
   }
 
   @Override
-  public void registerBeanDefinition(String name, BeanDefinition bd) {
+  public void registerBeanDefinition(String name, BeanDefinition bd) throws BeansException {
     this.beanDefinitions.put(name, bd);
     this.beanDefinitionNames.add(name);
     if(!bd.isLazyInit()){

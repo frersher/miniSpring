@@ -5,6 +5,7 @@ import com.minis.XmlBeanDefinitionReader;
 import com.minis.beans.BeanFactory;
 import com.minis.beans.SimpleBeanFactory;
 import com.minis.core.ClassPathXmlResource;
+import com.minis.core.Resource;
 
 /**
  * @author: chenb
@@ -14,16 +15,28 @@ public class ClassPathXmlApplicationContext implements BeanFactory ,ApplicationE
 
     SimpleBeanFactory beanFactory;
 
+
+
+
     public ClassPathXmlApplicationContext(String path) throws BeansException {
-        beanFactory = new SimpleBeanFactory();
-        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
-        ClassPathXmlResource resource = new ClassPathXmlResource(path);
-        reader.loadBeanDefinitions(resource);
+      this(path, true);
+    }
+
+
+    public ClassPathXmlApplicationContext(String path, boolean isRefresh) throws BeansException {
+        Resource res = new ClassPathXmlResource(path);
+        SimpleBeanFactory bf = new SimpleBeanFactory();
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
+        reader.loadBeanDefinitions(res);
+        this.beanFactory = bf;
+        if (isRefresh) {
+            beanFactory.refresh();
+        }
     }
 
 
     @Override
-    public Object getBean(String name) {
+    public Object getBean(String name) throws BeansException {
         return beanFactory.getBean(name);
     }
 
