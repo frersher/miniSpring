@@ -10,7 +10,7 @@ import com.minis.core.XmlBeanDefinitionReader;
  * @author: chenb
  * @date: 2023/11/27
  **/
-public class ClassPathXmlApplicationContext {
+public class ClassPathXmlApplicationContext implements BeanFactory{
     private BeanFactory beanFactory = new SimpleBeanFactory();
 
     public ClassPathXmlApplicationContext(String xmlPath) throws BeansException {
@@ -20,6 +20,12 @@ public class ClassPathXmlApplicationContext {
     }
 
 
+    @Override
+    public void registerBeanDefinition(BeanDefinition beanDefinition) {
+         beanFactory.registerBeanDefinition(beanDefinition);
+    }
+
+    @Override
     public Object getBean(String beanId) throws BeansException {
         return beanFactory.getBean(beanId);
     }
