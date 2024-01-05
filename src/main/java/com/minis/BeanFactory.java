@@ -1,11 +1,13 @@
 package com.minis;
 
 /**
+ * desc
+ *
  * @author: chenb
- * @date: 2023/07/10
+ * @date: 2023/11/27
  **/
 public interface BeanFactory {
-      Object getBean(String name);
+    Object getBean(String beanName) throws BeansException;
 
-      void registerBeanDefinition(BeanDefinition beanDefinition);
+    void registerBeanDefinition(BeanDefinition beanDefinition);
 }

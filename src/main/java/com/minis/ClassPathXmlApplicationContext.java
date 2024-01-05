@@ -1,28 +1,27 @@
 package com.minis;
 
+import com.minis.core.ClassPathXmlResource;
+import com.minis.core.SimpleBeanFactory;
+import com.minis.core.XmlBeanDefinitionReader;
+
 /**
+ * desc
+ *
  * @author: chenb
- * @date: 2023/07/10
+ * @date: 2023/11/27
  **/
-public class ClassPathXmlApplicationContext implements BeanFactory{
+public class ClassPathXmlApplicationContext {
+    private BeanFactory beanFactory = new SimpleBeanFactory();
 
-    BeanFactory beanFactory;
-
-    public ClassPathXmlApplicationContext(String path) throws BeansException {
-        beanFactory = new SimpleBeanFactory();
-        ClassPathXmlResource resource = new ClassPathXmlResource(path);
-        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
-        reader.loadBeanDefinitions(resource);
+    public ClassPathXmlApplicationContext(String xmlPath) throws BeansException {
+        Resource classPathXmlResource = new ClassPathXmlResource(xmlPath);
+        XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+        xmlBeanDefinitionReader.loadBeanDefinition(classPathXmlResource);
     }
 
 
-    @Override
-    public Object getBean(String name) {
-        return beanFactory.getBean(name);
+    public Object getBean(String beanId) throws BeansException {
+        return beanFactory.getBean(beanId);
     }
 
-    @Override
-    public void registerBeanDefinition(BeanDefinition beanDefinition) {
-        beanFactory.registerBeanDefinition(beanDefinition);
-    }
 }

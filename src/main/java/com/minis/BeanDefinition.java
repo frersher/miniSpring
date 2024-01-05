@@ -1,35 +1,34 @@
 package com.minis;
 
 /**
+ *
+ *
  * @author: chenb
- * @date: 2023/07/10
+ * @date: 2023/11/27
  **/
 public class BeanDefinition {
-
-  private String id;
-
-  private String className;
-
-  public  BeanDefinition( String id, String className) {
-    this.id = id;
-    this.className = className;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public String getClassName() {
-    return className;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
+    private String id;
+    private String className;
 
 
-  public void setClassName(String className) {
-    this.className = className;
-  }
+    public BeanDefinition(String id, String className) {
+        this.id = id;
+        this.className = className;
+    }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
 }
